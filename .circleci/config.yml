@@ -1,0 +1,29 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.9
+    working_directory: ~/cherished
+    steps:
+      - checkout
+
+  deploy:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/cherished
+    steps:
+      - checkout
+      - run: pip install awscli --upgrade --user
+      - run: /home/circleci/.local/bin/aws --region ap-southeast-2 s3 sync src s3://cherished-and-co/ --delete
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires: ["build"]
+          filters:
+            branches:
+              only: master
